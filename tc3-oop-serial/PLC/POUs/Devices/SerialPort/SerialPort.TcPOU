@@ -1,0 +1,285 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="SerialPort" Id="{c6d7355b-af41-4aa4-a5c3-12a2245d2e7c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK SerialPort IMPLEMENTS I_CommsTransceiver
+VAR
+	ComPort : ComPort;
+	fbSendString : SendString;
+	txBuffer : REFERENCE TO ComBuffer;
+	txError	: BOOL;
+	txErrorId: ComError_t;
+	txBusy : BOOL;
+	txString : STRING;
+	fbReceiveString : ReceiveString;
+	rxBuffer : REFERENCE TO ComBuffer;
+	rxPrefix : STRING;
+	rxSuffex : STRING;
+	rxError	: BOOL;
+	rxErrorId: ComError_t;
+	rxWatchdogTime : TIME;
+	rxTimeOut : BOOL;
+	rxBusy : BOOL;
+	rxString : STRING;
+	rxCounter : INT;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Constructor" Id="{cd83a96c-058a-434d-af59-a878eb01d06c}" />
+    <Folder Name="Private" Id="{85477e8a-a0d9-42fe-aaa7-918615cb1423}" />
+    <Folder Name="Properties" Id="{64420947-59bc-42cb-8ed2-ab95b7224a7f}" />
+    <Folder Name="Public" Id="{1aad9fec-9e3f-4a67-93e4-f3fd04c8e0d0}" />
+    <Method Name="CompleteRead" Id="{fea4a408-a2e4-450d-b0ef-32050b9bb663}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE CompleteRead
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[rxString := '';]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ConfigureRead" Id="{684ff0ce-182e-4ba1-b0e4-df564a87f545}" FolderPath="Public\">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD PUBLIC ConfigureRead
+VAR_INPUT
+	Prefix: STRING;
+	Suffix: STRING;
+	Timeout: TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[rxPrefix := Prefix;
+rxSuffex := Suffix;
+rxWatchdogTime := Timeout;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CyclicCall" Id="{a65e2804-5d38-4c9f-ab62-49ef81747e12}" FolderPath="Public\">
+      <Declaration><![CDATA[METHOD PUBLIC CyclicCall
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ComPort();
+ProcessSendData();
+ProcessReceiveData(); ]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="ErrorId" Id="{e18bb3a4-bd9d-4e38-8e25-0d5082b0bd42}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC ErrorId : ComError_t]]></Declaration>
+      <Get Name="Get" Id="{4fecd34b-01a6-4ce2-8f11-e71ea03b76e2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ErrorId := txErrorId;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="FB_init" Id="{324a4d6d-fac5-48b8-bac8-08285b626dc2}" FolderPath="Constructor\">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[txBuffer REF= THIS^.ComPort.TxBuffer;
+rxBuffer REF= THIS^.ComPort.RxBuffer;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="hasError" Id="{20a07079-af4b-403d-b611-b77a14226c8a}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC hasError : BOOL]]></Declaration>
+      <Get Name="Get" Id="{af24f49c-a5ad-471b-92f8-13c8d5ee0259}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[hasError := txError;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="hasReceivedData" Id="{0e561f04-b5b9-4c48-9f78-63751e0e2ea9}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC hasReceivedData : BOOL]]></Declaration>
+      <Get Name="Get" Id="{62611b75-2a0f-46e8-ad7f-7d5d40035be3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[hasReceivedData := rxString <> '';]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isBusy" Id="{13bc6836-d316-46c4-a0da-dcbe2621d6d7}" FolderPath="Properties\">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC isBusy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{21d450e6-8e0e-46d0-9863-7718811da2a6}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isBusy := txBusy;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="ProcessReceiveData" Id="{a4ed04fe-3baa-408c-9e08-14a38138590c}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ProcessReceiveData
+VAR_INPUT
+END_VAR
+VAR
+	sReceivedString : STRING;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbReceiveString(
+	Prefix:= rxPrefix,
+	Suffix:= rxSuffex,
+	Timeout:= rxWatchdogTime,
+	ReceivedString:= sReceivedString,
+	RXbuffer:= rxBuffer,
+	StringReceived=> ,
+	Busy=> rxBusy,
+	Error=> ,
+	RxTimeout=> rxTimeOut );
+IF fbReceiveString.Error <> COMERROR_NOERROR THEN
+	rxError := TRUE;
+	rxErrorId := fbReceiveString.Error;
+END_IF
+IF fbReceiveString.StringReceived THEN
+	rxString := sReceivedString;
+	rxCounter := rxCounter + 1;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ProcessSendData" Id="{a08b16e9-c270-4bbb-a281-90a1424b4e43}" FolderPath="Private\">
+      <Declaration><![CDATA[METHOD PRIVATE ProcessSendData
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF txString <> '' OR fbSendString.Busy THEN
+	fbSendString(	SendString:= txString,
+			TXbuffer := txBuffer,
+			Busy=> txBusy,
+			Error=> );
+	IF fbSendString.Error <> COMERROR_NOERROR THEN
+		txError := TRUE;
+		txErrorId := fbSendString.Error;
+	END_IF
+	IF fbSendString.Busy = FALSE THEN
+		txString := '';
+	END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Read" Id="{ec697440-28c2-4469-bbf7-ea4b06ee85f6}" FolderPath="Public\">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD PUBLIC Read : String
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Read := rxString;
+CompleteRead();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Reset" Id="{bb3cd5ac-461c-4159-8311-81740aaa94ca}" FolderPath="Public\">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD PUBLIC Reset
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ComPort.Reset();
+
+txError := FALSE;
+txErrorId := COMERROR_NOERROR;
+
+txString := '';]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Send" Id="{80d1395a-0534-4866-b2bb-bdc808873576}" FolderPath="Public\">
+      <Declaration><![CDATA[{attribute 'TcRpcEnable'}
+METHOD PUBLIC Send
+VAR_INPUT
+	str : STRING;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF isBusy THEN 
+	RETURN;
+END_IF
+
+IF str <> '' THEN
+	txString := str;
+	THIS^.ProcessSendData();
+END_IF ]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="SerialPort">
+      <LineId Id="44" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.CompleteRead">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.ConfigureRead">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.CyclicCall">
+      <LineId Id="6" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.ErrorId.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.FB_init">
+      <LineId Id="9" Count="0" />
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.hasError.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.hasReceivedData.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.isBusy.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.ProcessReceiveData">
+      <LineId Id="20" Count="10" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="31" Count="2" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.ProcessSendData">
+      <LineId Id="7" Count="0" />
+      <LineId Id="9" Count="4" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="14" Count="4" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.Read">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="SerialPort.Reset">
+      <LineId Id="5" Count="0" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="SerialPort.Send">
+      <LineId Id="100" Count="4" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="68" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

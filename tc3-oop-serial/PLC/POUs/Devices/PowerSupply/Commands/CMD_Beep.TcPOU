@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="CMD_Beep" Id="{ceed3530-ceb8-4b70-b5a6-b920c843e646}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+FUNCTION_BLOCK CMD_Beep IMPLEMENTS I_Command
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	Comms : I_CommsTransmitter;
+	Status : (IDLE, EXECUTE, SENDING, SENT, COMPLETE, TIMED_OUT);
+	WatchDog : WatchDog; 
+END_VAR
+VAR CONSTANT
+	CMD : STRING := 'SYSTem:BEEPer$R$N';
+	TIME_OUT : TIME := T#2S;	
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE Status OF
+	
+	EXECUTE: 
+		WatchDog.Enable(TIME_OUT);
+		Status := SENDING;
+		
+	SENDING:
+		IF Comms.isBusy THEN
+			RETURN;
+		ELSE
+			Comms.Send(CMD);
+			Status := SENT;
+		END_IF
+		
+	SENT:
+		IF Comms.isBusy THEN
+			RETURN;
+		ELSE
+			WatchDog.Disable();
+			Status := COMPLETE;
+		END_IF
+		
+	IDLE: //
+	COMPLETE://
+	TIMED_OUT: //
+	
+END_CASE
+
+IF WatchDog.isTriggered THEN
+	WatchDog.Disable();
+	Status := TIMED_OUT;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="Destroy" Id="{dbace7e7-8252-4843-a9f7-1c5664cd4ded}">
+      <Declaration><![CDATA[METHOD Destroy
+VAR_INPUT
+END_VAR
+VAR
+	selfPointer: POINTER TO CMD_Beep;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[selfPointer := ADR(THIS^);
+__DELETE(selfPointer);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Execute" Id="{25061073-fedb-4893-9e4a-bddecadd276c}">
+      <Declaration><![CDATA[METHOD PUBLIC Execute : BOOL
+VAR_INPUT
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT isBusy THEN
+	Status := EXECUTE;
+	Execute := TRUE;
+END_IF
+
+THIS^();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{974da62a-5d50-4005-bbc5-46fd62486c62}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+	Comms : I_CommsTransmitter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.Comms := Comms;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="hasTimedOut" Id="{7ba9a105-c1a3-4748-81d1-184033609fd5}">
+      <Declaration><![CDATA[PROPERTY PUBLIC hasTimedOut : BOOL]]></Declaration>
+      <Get Name="Get" Id="{7fc9873e-8b84-49d1-a1bd-aad55d4debc5}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[hasTimedOut := (Status = TIMED_OUT) ;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isBusy" Id="{c3b3a263-f0c5-4061-ada2-946d993ea3bb}">
+      <Declaration><![CDATA[PROPERTY PUBLIC isBusy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{5bc46bbc-c90c-4de0-9a47-29fb000ff510}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isBusy := not (Status = IDLE or Status = COMPLETE or Status = TIMED_OUT);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isComplete" Id="{2f5ea95f-2aaa-483a-925e-e7b33079cff9}">
+      <Declaration><![CDATA[PROPERTY isComplete : BOOL]]></Declaration>
+      <Get Name="Get" Id="{ef0460e6-7528-4dc8-9342-2b9526ac8f93}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isComplete := (Status = COMPLETE or Status = TIMED_OUT) ;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="CMD_Beep">
+      <LineId Id="27" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="57" Count="3" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="63" Count="2" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="48" Count="1" />
+    </LineIds>
+    <LineIds Name="CMD_Beep.Destroy">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_Beep.Execute">
+      <LineId Id="5" Count="0" />
+      <LineId Id="22" Count="1" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_Beep.FB_init">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_Beep.hasTimedOut.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_Beep.isBusy.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_Beep.isComplete.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

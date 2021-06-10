@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="CMD_QueryTargetVoltage" Id="{79211fe0-42eb-4303-8534-c8394b41bf8c}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+FUNCTION_BLOCK CMD_QueryTargetVoltage IMPLEMENTS I_Command
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	Comms : I_CommsTransceiver;
+	Status : (IDLE, EXECUTE, CONFIG_RECEIVER, SENDING_QUERY, SENT_QUERY, WAITING_FOR_REPLY, PROCESSING_REPLY, COMPLETE, TIMED_OUT);
+	WatchDog : WatchDog; 
+	
+	receivedString : STRING;
+	result : REFERENCE TO LREAL;
+	
+END_VAR
+VAR CONSTANT
+	CMD : STRING := 'SOUR:VOLT:AMPL?$R$N';
+	TIME_OUT : TIME := T#2S;	
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE Status OF
+	
+	EXECUTE: 
+		WatchDog.Enable(TIME_OUT);
+		Status := CONFIG_RECEIVER;
+		
+	CONFIG_RECEIVER:
+		Comms.ConfigureRead(Prefix:='',Suffix:='$R$N',Timeout:=TIME_OUT);
+		Status := SENDING_QUERY;
+		
+	SENDING_QUERY:
+		IF Comms.isBusy THEN
+			RETURN;
+		ELSE
+			Comms.Send(CMD);
+			Status := SENT_QUERY;
+		END_IF
+		
+	SENT_QUERY:
+		IF Comms.isBusy THEN
+			RETURN;
+		ELSE
+			WatchDog.Disable();
+			Status := WAITING_FOR_REPLY;
+		END_IF
+		
+	WAITING_FOR_REPLY:
+		IF Comms.hasReceivedData THEN
+			receivedString := Comms.Read();
+			Status := PROCESSING_REPLY;
+		END_IF
+		
+	PROCESSING_REPLY:
+		result := ConvertTargetVoltageStringToReal(receivedString);
+		Status := COMPLETE;
+		
+	IDLE: //
+	COMPLETE://
+	TIMED_OUT: //
+	
+END_CASE
+
+IF WatchDog.isTriggered THEN
+	WatchDog.Disable();
+	Status := TIMED_OUT;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="ConvertTargetVoltageStringToReal" Id="{f999b101-696e-401b-aaf8-88b8f1ab87f0}">
+      <Declaration><![CDATA[METHOD PRIVATE ConvertTargetVoltageStringToReal : lreal
+VAR_INPUT
+	encodedString : STRING;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ConvertTargetVoltageStringToReal := STRING_TO_LREAL(encodedString);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Destroy" Id="{67f7dd69-03e6-4084-ba54-311c9c619ecd}">
+      <Declaration><![CDATA[METHOD Destroy
+VAR_INPUT
+END_VAR
+VAR
+	selfPointer: POINTER TO CMD_Beep;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[selfPointer := ADR(THIS^);
+__DELETE(selfPointer);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Execute" Id="{4197248b-b55f-43d2-b7c6-5ee96dc2bfb4}">
+      <Declaration><![CDATA[METHOD PUBLIC Execute : BOOL
+VAR_INPUT
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT isBusy THEN
+	Status := EXECUTE;
+	Execute := TRUE;
+END_IF
+
+THIS^();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{2a0adcc8-03e4-4c74-b523-4b6b0a47bb46}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+	Comms : I_CommsTransceiver;
+	ReferenceToResult : REFERENCE TO LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.Comms := Comms;
+THIS^.result REF= ReferenceToResult;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="hasTimedOut" Id="{f2e5c161-6517-48b4-b5cb-938283ea6ebe}">
+      <Declaration><![CDATA[PROPERTY PUBLIC hasTimedOut : BOOL]]></Declaration>
+      <Get Name="Get" Id="{21f719d6-4efc-4ea4-ba68-0375190efd93}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[hasTimedOut := (Status = TIMED_OUT) ;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isBusy" Id="{6cfa8d6e-ffd4-4128-bc22-116206efd106}">
+      <Declaration><![CDATA[PROPERTY PUBLIC isBusy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{dc792097-8125-4714-bf2b-6a7bed2f9171}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isBusy := not (Status = IDLE or Status = COMPLETE or Status = TIMED_OUT);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isComplete" Id="{23437a9b-dabb-4664-abb1-e6afab13fc81}">
+      <Declaration><![CDATA[PROPERTY isComplete : BOOL]]></Declaration>
+      <Get Name="Get" Id="{5f315ac1-e9c2-483a-8afd-e17ca3967618}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isComplete := (Status = COMPLETE or Status = TIMED_OUT) ;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="CMD_QueryTargetVoltage">
+      <LineId Id="214" Count="26" />
+      <LineId Id="242" Count="5" />
+      <LineId Id="260" Count="0" />
+      <LineId Id="265" Count="0" />
+      <LineId Id="248" Count="9" />
+      <LineId Id="49" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_QueryTargetVoltage.ConvertTargetVoltageStringToReal">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_QueryTargetVoltage.Destroy">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_QueryTargetVoltage.Execute">
+      <LineId Id="5" Count="0" />
+      <LineId Id="22" Count="1" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_QueryTargetVoltage.FB_init">
+      <LineId Id="7" Count="0" />
+      <LineId Id="15" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_QueryTargetVoltage.hasTimedOut.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_QueryTargetVoltage.isBusy.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_QueryTargetVoltage.isComplete.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="CMD_RemoteMode" Id="{693695f4-74f5-4119-90c6-9c642ed01ec9}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+FUNCTION_BLOCK CMD_RemoteMode IMPLEMENTS I_Command
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	Comms : I_CommsTransmitter;
+	Status : (IDLE, EXECUTE, SENDING, SENT, COMPLETE, TIMED_OUT);
+	WatchDog : WatchDog; 
+END_VAR
+VAR CONSTANT
+	CMD : STRING := 'SYSTem:REMote$R$N';
+	TIME_OUT : TIME := T#2S;	
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE Status OF
+	
+	EXECUTE: 
+		WatchDog.Enable(TIME_OUT);
+		Status := SENDING;
+		
+	SENDING:
+		IF Comms.isBusy THEN
+			RETURN;
+		ELSE
+			Comms.Send(CMD);
+			Status := SENT;
+		END_IF
+		
+	SENT:
+		IF Comms.isBusy THEN
+			RETURN;
+		ELSE
+			WatchDog.Disable();
+			Status := COMPLETE;
+		END_IF
+
+	IDLE: //
+	COMPLETE://
+	TIMED_OUT: //
+	
+END_CASE
+
+IF WatchDog.isTriggered THEN
+	WatchDog.Disable();
+	Status := TIMED_OUT;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="Destroy" Id="{fc2d226b-dfbd-4242-8aac-4ae4555b8d82}">
+      <Declaration><![CDATA[METHOD Destroy
+VAR_INPUT
+END_VAR
+VAR
+	selfPointer: POINTER TO CMD_RemoteMode;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[selfPointer := ADR(THIS^);
+__DELETE(selfPointer);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Execute" Id="{b0b43112-947c-4a55-812d-aad2066cf74a}">
+      <Declaration><![CDATA[METHOD PUBLIC Execute : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT isBusy THEN
+	Status := EXECUTE;
+	Execute := TRUE;
+END_IF
+
+THIS^();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{01320c37-2820-4e5b-97d0-f91acb46a19b}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+	Comms : I_CommsTransmitter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.Comms := Comms;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="hasTimedOut" Id="{857ca9e9-914b-44ab-936f-e6f28df148fc}">
+      <Declaration><![CDATA[PROPERTY PUBLIC hasTimedOut : BOOL]]></Declaration>
+      <Get Name="Get" Id="{0b98c16a-774e-4308-882b-fe0b1847e759}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[hasTimedOut := (Status = TIMED_OUT) ;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isBusy" Id="{2cc21b9e-e7d3-4dc1-8322-c3834ceb937b}">
+      <Declaration><![CDATA[PROPERTY PUBLIC isBusy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{06554164-0ad3-4d3b-9d20-0af5f609e2dc}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isBusy := not (Status = IDLE or Status = COMPLETE or Status = TIMED_OUT);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isComplete" Id="{40efd645-d133-4c4e-a968-d2d464fb9529}">
+      <Declaration><![CDATA[PROPERTY isComplete : BOOL]]></Declaration>
+      <Get Name="Get" Id="{9a045034-bdc0-4549-8599-b5a3cde73040}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isComplete := (Status = COMPLETE or Status = TIMED_OUT) ;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="CMD_RemoteMode">
+      <LineId Id="27" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="105" Count="21" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="48" Count="1" />
+    </LineIds>
+    <LineIds Name="CMD_RemoteMode.Destroy">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_RemoteMode.Execute">
+      <LineId Id="5" Count="0" />
+      <LineId Id="22" Count="1" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_RemoteMode.FB_init">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_RemoteMode.hasTimedOut.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_RemoteMode.isBusy.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_RemoteMode.isComplete.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

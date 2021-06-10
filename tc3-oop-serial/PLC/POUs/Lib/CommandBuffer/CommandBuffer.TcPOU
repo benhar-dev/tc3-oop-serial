@@ -1,0 +1,144 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="CommandBuffer" Id="{fb835ec9-ebc0-4252-93e9-37c3088632da}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CommandBuffer
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	commandArray : ARRAY [0..MAX_ENTRIES] OF I_Command;
+	lastIndex : INT := EMPTY;
+	emptyCommand : CommandNull;
+END_VAR
+VAR CONSTANT
+	EMPTY : INT := -1;
+	MAX_ENTRIES : INT := 10;
+	FIRST_ENTRY : INT := 0;
+	LAST_ENTRY : INT := MAX_ENTRIES -1;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Property Name="CurrentCommand" Id="{dcbb658b-8616-4d34-bf5d-6e9e277e4d67}">
+      <Declaration><![CDATA[PROPERTY PUBLIC CurrentCommand : I_Command]]></Declaration>
+      <Get Name="Get" Id="{082c7f55-ca65-454a-a19d-81415d311401}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF isEmpty THEN
+	CurrentCommand := emptyCommand;
+ELSE 
+	CurrentCommand := commandArray[FIRST_ENTRY];
+END_IF
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Insert" Id="{b0881e18-d3be-43a9-a387-06533c1edd4a}">
+      <Declaration><![CDATA[METHOD PUBLIC Insert : BOOL
+VAR_INPUT
+	cmd : I_Command;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF isFull THEN
+	RETURN;
+END_IF
+
+lastIndex := lastIndex + 1;
+commandArray[lastIndex] := cmd;
+Insert := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="isEmpty" Id="{b39a5568-4f58-4ad2-a30a-194dad8dc0f8}">
+      <Declaration><![CDATA[PROPERTY PUBLIC isEmpty : BOOL]]></Declaration>
+      <Get Name="Get" Id="{a5cc405d-90d4-4967-a569-eb1c56116337}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isEmpty := (lastIndex = EMPTY);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isFull" Id="{ffee4067-6051-4d22-9503-ad3598cfbd35}">
+      <Declaration><![CDATA[PROPERTY PUBLIC isFull : BOOL]]></Declaration>
+      <Get Name="Get" Id="{c3c50f92-093a-4edd-8e72-0254a9b5084b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isFull := (lastIndex = MAX_ENTRIES);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Next" Id="{6ee872c8-f5f6-4fe2-ae99-a5161c824e4b}">
+      <Declaration><![CDATA[METHOD PUBLIC Next
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF isEmpty THEN
+	RETURN;
+END_IF
+
+Shift();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Shift" Id="{2b523c92-3515-4c3b-8688-5e8d7e910d4c}">
+      <Declaration><![CDATA[METHOD PRIVATE Shift
+VAR_INPUT
+END_VAR
+VAR
+	i: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[commandArray[FIRST_ENTRY].Destroy();
+
+FOR i := 1 TO lastIndex + 1 DO
+	commandArray[i-1] := commandArray[i];
+END_FOR
+
+lastIndex := lastIndex - 1;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="CommandBuffer">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandBuffer.CurrentCommand.Get">
+      <LineId Id="5" Count="1" />
+      <LineId Id="8" Count="1" />
+      <LineId Id="7" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandBuffer.Insert">
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="1" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandBuffer.isEmpty.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandBuffer.isFull.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandBuffer.Next">
+      <LineId Id="19" Count="2" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandBuffer.Shift">
+      <LineId Id="28" Count="7" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

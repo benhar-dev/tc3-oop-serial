@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="CMD_LocalMode" Id="{81bd4e41-71f5-4ad9-8da0-df552fed9008}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+FUNCTION_BLOCK CMD_LocalMode IMPLEMENTS I_Command
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	Comms : I_CommsTransmitter;
+	Status : (IDLE, EXECUTE, SENDING, SENT, COMPLETE, TIMED_OUT);
+	WatchDog : WatchDog; 
+END_VAR
+VAR CONSTANT
+	CMD : STRING := 'SYSTem:LOCal$R$N';
+	TIME_OUT : TIME := T#2S;	
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE Status OF
+	
+	EXECUTE: 
+		WatchDog.Enable(TIME_OUT);
+		Status := SENDING;
+		
+	SENDING:
+		IF Comms.isBusy THEN
+			RETURN;
+		ELSE
+			Comms.Send(CMD);
+			Status := SENT;
+		END_IF
+		
+	SENT:
+		IF Comms.isBusy THEN
+			RETURN;
+		ELSE
+			WatchDog.Disable();
+			Status := COMPLETE;
+		END_IF
+
+	IDLE: //
+	COMPLETE://
+	TIMED_OUT: //
+	
+END_CASE
+
+IF WatchDog.isTriggered THEN
+	WatchDog.Disable();
+	Status := TIMED_OUT;
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="Destroy" Id="{b41c498c-2ecd-4784-a0c6-15ef236441c2}">
+      <Declaration><![CDATA[METHOD Destroy
+VAR_INPUT
+END_VAR
+VAR
+	selfPointer: POINTER TO CMD_LocalMode;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[selfPointer := ADR(THIS^);
+__DELETE(selfPointer);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Execute" Id="{ee14a376-4f0b-4d98-aa2e-bf52c5e07060}">
+      <Declaration><![CDATA[METHOD PUBLIC Execute : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT isBusy THEN
+	Status := EXECUTE;
+	Execute := TRUE;
+END_IF
+
+THIS^();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{ea4a2169-70c9-465f-97c6-dc5c4ec9b407}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+	Comms : I_CommsTransmitter;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.Comms := Comms;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="hasTimedOut" Id="{e71f384a-3861-4e27-a9bb-80e9d542a1ff}">
+      <Declaration><![CDATA[PROPERTY PUBLIC hasTimedOut : BOOL]]></Declaration>
+      <Get Name="Get" Id="{953e4562-bbb8-45a1-a7f2-563dbf04758d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[hasTimedOut := (Status = TIMED_OUT) ;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isBusy" Id="{4a9a7459-d384-492a-92a8-1c3aae44c0c5}">
+      <Declaration><![CDATA[PROPERTY PUBLIC isBusy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{2eeda75b-c663-4204-9972-29f641f814b1}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isBusy := not (Status = IDLE or Status = COMPLETE or Status = TIMED_OUT);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isComplete" Id="{fc25be20-4579-42c6-9362-a55f518c413f}">
+      <Declaration><![CDATA[PROPERTY isComplete : BOOL]]></Declaration>
+      <Get Name="Get" Id="{7fdd9fca-bcd8-4016-8c6e-34b0a247555d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isComplete := (Status = COMPLETE or Status = TIMED_OUT) ;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="CMD_LocalMode">
+      <LineId Id="27" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="57" Count="3" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="63" Count="2" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="105" Count="2" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="48" Count="1" />
+    </LineIds>
+    <LineIds Name="CMD_LocalMode.Destroy">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_LocalMode.Execute">
+      <LineId Id="5" Count="0" />
+      <LineId Id="22" Count="1" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="21" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_LocalMode.FB_init">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_LocalMode.hasTimedOut.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_LocalMode.isBusy.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CMD_LocalMode.isComplete.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

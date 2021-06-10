@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="PowerSupply" Id="{cf1e44a0-13c6-46f0-b17e-d988703c2722}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PowerSupply
+VAR
+	ComHandler : I_CommsTransceiver;
+	CommandBuffer : CommandBuffer;
+	_targetVoltage : LREAL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Constructor" Id="{f6d2edf1-5226-4dc1-9698-57c0bbb4ba86}" />
+    <Folder Name="Properties" Id="{da643916-7943-47e4-9942-5954675e5d0f}" />
+    <Folder Name="Public" Id="{67385631-0e8f-4e72-8a98-cf6f27cc0970}" />
+    <Method Name="Beep" Id="{586c8e92-565d-45db-af5c-995c8f708a01}" FolderPath="Public\">
+      <Declaration><![CDATA[METHOD PUBLIC Beep
+VAR
+	newCommand : POINTER TO CMD_Beep;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT CommandBuffer.isFull THEN 
+	newCommand := __NEW(CMD_Beep(Comms := THIS^.ComHandler));
+	CommandBuffer.Insert(newCommand^); 
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Connect" Id="{b601c4c6-4d88-40f0-9695-8ba8bde6a7c6}" FolderPath="Public\">
+      <Declaration><![CDATA[METHOD PUBLIC Connect
+VAR
+	newCommand: POINTER TO CMD_RemoteMode;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT CommandBuffer.isFull THEN 
+	newCommand := __NEW(CMD_RemoteMode(Comms := THIS^.ComHandler));
+	CommandBuffer.Insert(newCommand^); 
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CyclicCall" Id="{5e4355a5-bcde-4609-931a-21a8ea87d393}" FolderPath="Public\">
+      <Declaration><![CDATA[METHOD PUBLIC CyclicCall]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CommandBuffer.CurrentCommand.Execute();
+		
+IF CommandBuffer.CurrentCommand.isComplete THEN 
+	CommandBuffer.Next();
+	RETURN;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Disconnect" Id="{738fa106-00c9-421d-bc11-a6527958d7bc}" FolderPath="Public\">
+      <Declaration><![CDATA[METHOD PUBLIC Disconnect
+VAR
+	newCommand: POINTER TO CMD_LocalMode;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT CommandBuffer.isFull THEN 
+	newCommand := __NEW(CMD_LocalMode(Comms := THIS^.ComHandler));
+	CommandBuffer.Insert(newCommand^); 
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="FB_init" Id="{7503458c-d3f0-4985-9b37-caad344ae25e}" FolderPath="Constructor\">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+	Comms : I_CommsTransceiver;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.ComHandler := Comms;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="QueryTargetVoltage" Id="{9f2e3d82-0eed-4cc8-9ea7-c5bcd432632b}" FolderPath="Public\">
+      <Declaration><![CDATA[METHOD PUBLIC QueryTargetVoltage
+VAR
+	newCommand: POINTER TO CMD_QueryTargetVoltage;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT CommandBuffer.isFull THEN 
+	newCommand := __NEW(CMD_QueryTargetVoltage(Comms := THIS^.ComHandler, ReferenceToResult:=_targetVoltage));
+	CommandBuffer.Insert(newCommand^); 
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="TargetVoltage" Id="{88cee3d8-48b3-4a78-b282-9818ddc679ea}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PUBLIC TargetVoltage : LREAL]]></Declaration>
+      <Get Name="Get" Id="{0ef1798f-2cc7-4d7d-815e-8ab4bc9060c3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[TargetVoltage := this^._targetVoltage;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="PowerSupply">
+      <LineId Id="84" Count="0" />
+    </LineIds>
+    <LineIds Name="PowerSupply.Beep">
+      <LineId Id="30" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="31" Count="0" />
+    </LineIds>
+    <LineIds Name="PowerSupply.Connect">
+      <LineId Id="27" Count="2" />
+      <LineId Id="25" Count="0" />
+    </LineIds>
+    <LineIds Name="PowerSupply.CyclicCall">
+      <LineId Id="6" Count="5" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="PowerSupply.Disconnect">
+      <LineId Id="5" Count="0" />
+      <LineId Id="33" Count="1" />
+      <LineId Id="31" Count="0" />
+    </LineIds>
+    <LineIds Name="PowerSupply.FB_init">
+      <LineId Id="7" Count="0" />
+    </LineIds>
+    <LineIds Name="PowerSupply.QueryTargetVoltage">
+      <LineId Id="23" Count="2" />
+      <LineId Id="22" Count="0" />
+    </LineIds>
+    <LineIds Name="PowerSupply.TargetVoltage.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

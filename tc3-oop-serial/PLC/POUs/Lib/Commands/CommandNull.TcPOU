@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="CommandNull" Id="{b4285bea-1d50-47de-b401-5784283591d5}" SpecialFunc="None">
+    <Declaration><![CDATA[{attribute 'enable_dynamic_creation'}
+FUNCTION_BLOCK CommandNull IMPLEMENTS I_Command
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Destroy" Id="{6e92e4e7-b63b-42bb-a5c0-163dc03d8235}">
+      <Declaration><![CDATA[METHOD Destroy
+VAR_INPUT
+END_VAR
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Execute" Id="{f61e9aab-f248-489d-b401-3b5d77cce9c1}">
+      <Declaration><![CDATA[METHOD PUBLIC Execute : BOOL
+VAR_INPUT
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="hasTimedOut" Id="{a84dc935-cceb-42e4-a12d-774e04a4b62e}">
+      <Declaration><![CDATA[PROPERTY PUBLIC hasTimedOut : BOOL]]></Declaration>
+      <Get Name="Get" Id="{5ddf4554-bd96-4cd9-8d17-fa33f194dfdf}">
+        <Declaration><![CDATA[VAR
+END_VAR]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[hasTimedOut := false;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isBusy" Id="{effb71e0-3c4a-4ac7-8f0a-91656c359ae8}">
+      <Declaration><![CDATA[PROPERTY PUBLIC isBusy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{fb967f08-8b66-4e5a-a6eb-f89b5d5da71a}">
+        <Declaration><![CDATA[VAR
+END_VAR]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isBusy := false;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="isComplete" Id="{dc62dada-a87c-48b3-9261-2a693ff063b1}">
+      <Declaration><![CDATA[PROPERTY isComplete : BOOL]]></Declaration>
+      <Get Name="Get" Id="{125bebac-0933-4b8b-8484-ff5a645b64bf}">
+        <Declaration><![CDATA[VAR
+END_VAR]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[isComplete := true;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="CommandNull">
+      <LineId Id="49" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandNull.Destroy">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandNull.Execute">
+      <LineId Id="21" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandNull.hasTimedOut.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandNull.isBusy.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="CommandNull.isComplete.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <Itf Name="I_CommsTransceiver" Id="{92621764-4666-437c-b4b6-8f4edc88ce6c}">
+    <Declaration><![CDATA[INTERFACE I_CommsTransceiver EXTENDS I_CommsReceiver, I_CommsTransmitter
+]]></Declaration>
+  </Itf>
+</TcPlcObject>

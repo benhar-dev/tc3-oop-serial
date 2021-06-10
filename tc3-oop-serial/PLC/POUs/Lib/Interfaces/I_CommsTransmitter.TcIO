@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <Itf Name="I_CommsTransmitter" Id="{be9d3f1f-5c21-4a23-a632-6bfe2cffda27}">
+    <Declaration><![CDATA[INTERFACE I_CommsTransmitter
+]]></Declaration>
+    <Property Name="hasError" Id="{dd0e81d4-12fb-4138-a83e-6aa3f47dd1eb}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY hasError : BOOL]]></Declaration>
+      <Get Name="Get" Id="{12e6feea-485e-4290-ae5f-47cd2172aaab}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="isBusy" Id="{183857b5-e7a6-4bbe-8e5b-e8fc2334ebaf}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY isBusy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{d602ffae-9aa9-4bc6-8059-16755789c9ee}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Method Name="Send" Id="{b6f577c9-8bee-4cab-a84e-8b1eb0e4e4f5}">
+      <Declaration><![CDATA[METHOD PUBLIC Send
+VAR_INPUT
+	str : STRING;
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

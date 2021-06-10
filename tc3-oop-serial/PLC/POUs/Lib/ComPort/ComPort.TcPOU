@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="ComPort" Id="{0e19a445-e458-40ab-ab92-b52b5238a65c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ComPort
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	(* 	I/O variables for a EL6001 terminal*)
+	{attribute 'OPC.UA.DA' := '0'}
+	stIn_EL6001 AT %I* : EL6inData22B;	(* linked to the EL6001 in the TwinCAT System Manager *)
+	{attribute 'OPC.UA.DA' := '0'}
+	stOut_EL6001 AT %Q*	: EL6outData22B;(* linked to the EL6001 in the TwinCAT System Manager *)
+	
+	(* Internal Variables *) 
+	{attribute 'OPC.UA.DA' := '0'}
+	fbComPortCtrl : SerialLineControl;
+	{attribute 'OPC.UA.DA' := '0'}
+	aRxBuffer : ComBuffer;
+	{attribute 'OPC.UA.DA' := '0'}
+	aTxBuffer : ComBuffer;
+	{attribute 'OPC.UA.DA' := '0'}
+	bComPortError : BOOL;
+	{attribute 'OPC.UA.DA' := '0'}
+	eComPortErrorId : ComError_t;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbComPortCtrl(
+	Mode:= SERIALLINEMODE_EL6_22B, 
+	pComIn:= ADR(stIn_EL6001), 
+	pComOut:= ADR(stOut_EL6001), 
+	SizeComIn:= SIZEOF(stIn_EL6001), 
+	Error=> , 
+	ErrorID=> , 
+	TxBuffer:= aTxBuffer, 
+	RxBuffer:= aRxBuffer );
+IF fbComPortCtrl.Error THEN
+	bComPortError := TRUE;
+	eComPortErrorId := fbComPortCtrl.ErrorID;
+END_IF]]></ST>
+    </Implementation>
+    <Folder Name="Properties" Id="{a5dd5c05-7b83-47f5-9305-709e3b555ca9}" />
+    <Folder Name="Public" Id="{113379e0-29dd-4f31-872b-46cca06cff11}" />
+    <Property Name="ComPortError" Id="{2b03bf1e-34a6-41b3-8990-4b0ab992219e}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PUBLIC ComPortError : BOOL]]></Declaration>
+      <Get Name="Get" Id="{890eeb4c-d359-4ac0-9396-50d500ff2993}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ComPortError := bComPortError;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="ComPortErrorId" Id="{de4acad1-5ae5-4b86-beb8-dee49417e532}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY PUBLIC ComPortErrorId : ComError_t]]></Declaration>
+      <Get Name="Get" Id="{824900ac-1328-4b49-a50e-11ff2ddf2177}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ComPortErrorId := eComPortErrorId;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{49bbb285-d2ea-4a40-95de-ee078a347e0d}" FolderPath="Public\">
+      <Declaration><![CDATA[METHOD PUBLIC Reset
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bComPortError := FALSE;
+eComPortErrorId := COMERROR_NOERROR;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="RxBuffer" Id="{8a5e082e-cbc1-46da-b942-cf233e6f372c}">
+      <Declaration><![CDATA[PROPERTY PUBLIC RxBuffer : Reference to ComBuffer]]></Declaration>
+      <Get Name="Get" Id="{a17cb106-6bda-4c06-aa94-d27df8cc57e7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[RxBuffer REF= aRxBuffer;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="TxBuffer" Id="{0fa8534c-1b5c-4ee7-ab13-c983a4934ad0}">
+      <Declaration><![CDATA[PROPERTY PUBLIC TxBuffer : Reference to ComBuffer]]></Declaration>
+      <Get Name="Get" Id="{d2ec9def-8147-416d-a746-253658f39756}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[TxBuffer REF= aTxBuffer;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="ComPort">
+      <LineId Id="225" Count="11" />
+      <LineId Id="63" Count="0" />
+    </LineIds>
+    <LineIds Name="ComPort.ComPortError.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="ComPort.ComPortErrorId.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="ComPort.Reset">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="ComPort.RxBuffer.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="ComPort.TxBuffer.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

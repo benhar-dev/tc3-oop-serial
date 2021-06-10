@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <POU Name="WatchDog" Id="{ed8665c8-6b19-4490-9b90-bc87be843128}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK WatchDog
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	Timer : TON;
+	Enabled : BOOL;
+	TimeSpan : TIME := T#1S;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Timer(IN:=Enabled, PT:=TimeSpan);]]></ST>
+    </Implementation>
+    <Method Name="Disable" Id="{95c6f188-0992-43c9-82e2-6d36d22c4078}">
+      <Declaration><![CDATA[METHOD PUBLIC Disable : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Enabled := FALSE;
+THIS^();]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Enable" Id="{1c98ed3a-c063-40b2-aae9-6d0e5e1e579f}">
+      <Declaration><![CDATA[METHOD PUBLIC Enable
+VAR_INPUT
+	Duration : TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TimeSpan := Duration;
+Enabled := TRUE;
+THIS^();]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="isTriggered" Id="{3168c9cc-acc0-45d3-8b30-c08b41368388}">
+      <Declaration><![CDATA[PROPERTY PUBLIC isTriggered : BOOL]]></Declaration>
+      <Get Name="Get" Id="{f93bc7ce-82d4-4c5b-ae87-4cb91023bd70}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[THIS^();
+isTriggered := Timer.Q;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{1847def5-837a-4668-a950-37ab8f07054e}">
+      <Declaration><![CDATA[METHOD PUBLIC Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Disable();
+Enable(TimeSpan);]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="WatchDog">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="WatchDog.Disable">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="WatchDog.Enable">
+      <LineId Id="7" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="WatchDog.isTriggered.Get">
+      <LineId Id="5" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="WatchDog.Reset">
+      <LineId Id="11" Count="0" />
+      <LineId Id="7" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

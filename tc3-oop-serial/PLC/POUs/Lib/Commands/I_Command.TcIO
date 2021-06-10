@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <Itf Name="I_Command" Id="{6f8f5bd7-65cd-4609-92ad-f65effbcf8e5}">
+    <Declaration><![CDATA[INTERFACE I_Command
+]]></Declaration>
+    <Method Name="Destroy" Id="{2a4d2710-f9e8-4537-b240-6283c604cfac}">
+      <Declaration><![CDATA[METHOD Destroy
+VAR_INPUT
+END_VAR]]></Declaration>
+    </Method>
+    <Method Name="Execute" Id="{8cfea5b9-95ab-4496-9646-77bca8cd2eb8}">
+      <Declaration><![CDATA[METHOD PUBLIC Execute : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="isBusy" Id="{2ddf0da5-aaa8-4166-8a99-af9430737934}">
+      <Declaration><![CDATA[PROPERTY PUBLIC isBusy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{c90254ea-79a2-45e2-a71a-aa4bf21ad42b}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Property Name="isComplete" Id="{257714a2-9732-4b01-82ab-6b268f7bd803}">
+      <Declaration><![CDATA[PROPERTY isComplete : BOOL]]></Declaration>
+      <Get Name="Get" Id="{037e08c2-cf12-43db-9bad-e0155de62229}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+  </Itf>
+</TcPlcObject>

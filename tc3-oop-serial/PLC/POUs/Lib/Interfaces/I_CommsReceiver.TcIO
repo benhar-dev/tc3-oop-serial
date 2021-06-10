@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <Itf Name="I_CommsReceiver" Id="{0751048e-5991-4169-b417-c57bf1d34b96}">
+    <Declaration><![CDATA[INTERFACE I_CommsReceiver
+]]></Declaration>
+    <Method Name="ConfigureRead" Id="{fc726913-0c1e-4558-b7cb-5ca778b2c937}">
+      <Declaration><![CDATA[METHOD PUBLIC ConfigureRead
+VAR_INPUT
+	Prefix: STRING;
+	Suffix: STRING;
+	Timeout: TIME;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Property Name="hasReceivedData" Id="{8f16a4bd-9f0e-4369-b4d8-2ba596c1b71a}">
+      <Declaration><![CDATA[{attribute 'monitoring' := 'call'}
+PROPERTY PUBLIC hasReceivedData : BOOL]]></Declaration>
+      <Get Name="Get" Id="{af40ca3d-1fc0-4fa5-8440-812ff477836f}">
+        <Declaration><![CDATA[]]></Declaration>
+      </Get>
+    </Property>
+    <Method Name="Read" Id="{0206c72e-abdc-4020-aec0-d8423a28a103}">
+      <Declaration><![CDATA[METHOD PUBLIC Read : String
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.9">
+  <GVL Name="GVL" Id="{3e4349e6-a99a-4aa8-b94a-96e30307ccae}">
+    <Declaration><![CDATA[VAR_GLOBAL
+
+	serialPort1 : SerialPort;
+	powerSupply : PowerSupply(serialPort1);
+	
+END_VAR
+]]></Declaration>
+  </GVL>
+</TcPlcObject>
